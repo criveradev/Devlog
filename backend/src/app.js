@@ -14,10 +14,28 @@ const app = express();
 
 
 // Middlewares globales
-app.use(cors());
+app.use(cors({
+    origin: (origin, callback) => {
+        const allowed = [
+            'http://localhost:5173',
+            'http://localhost:5050',
+            process.env.CLIENT_URL,
+        ].filter(Boolean);
+
+        if (!origin || allowed.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+}));
 app.use(express.json()); // permite leer JSON en req.body
 
 // Ruta de prueba
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 app.use('/api/auth', authRoutes);
 app.get('/', (req, res) => {
     res.json({ message: 'API funcionando' });
@@ -31,7 +49,6 @@ connectDB().then(() => {
         console.log(`Servidor en http://localhost:${PORT}`);
     });
 });
-
 
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
