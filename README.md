@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌐 RedSocial MERN
+# 🌐 Devlog
 
 **Red social full-stack construida con el stack MERN**
 

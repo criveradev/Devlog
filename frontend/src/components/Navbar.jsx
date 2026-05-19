@@ -40,7 +40,7 @@ function Navbar() {
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="font-bold text-lg text-blue-600 tracking-tight">
-          RedSocial
+          Devlog
         </Link>
 
         {user ? (
