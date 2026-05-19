@@ -30,7 +30,7 @@ function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo y título */}
         <div className="text-center mb-8">
-          <span className="inline-block bg-blue-600 text-white font-mono font-bold text-2xl px-3 py-4 rounded-xl mb-4">
+          <span className="inline-block bg-blue-600 text-white font-mono font-bold text-2xl px-4 py-3 rounded-xl mb-4">
             &gt;_
           </span>
           <h1 className="text-3xl font-bold text-gray-900">Devlog</h1>
