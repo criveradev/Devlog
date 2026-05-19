@@ -39,6 +39,9 @@ function Navbar() {
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-20">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo */}
+        <span className="inline-block bg-blue-600 text-white font-mono font-bold text-2xl px-4 py-3 rounded-xl mb-4">
+          &gt;_
+        </span>
         <Link to="/" className="font-bold text-lg text-blue-600 tracking-tight">
           Devlog
         </Link>
