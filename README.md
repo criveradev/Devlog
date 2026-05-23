@@ -2,7 +2,7 @@
 
 # 🌐 Devlog
 
-**Red social full-stack construida con el stack MERN**
+**Red social construida con el stack MERN**
 
 Una aplicación web completa donde los usuarios pueden publicar contenido,
 interactuar con otros y construir su red de seguidores.
@@ -20,7 +20,7 @@ interactuar con otros y construir su red de seguidores.
 
 🔗 **[Ver demo en vivo](https://red-social-kappa.vercel.app)** &nbsp;·&nbsp;
 📡 **[API en producción](https://red-social-rbav.onrender.com/health)** &nbsp;·&nbsp;
-🐛 **[Reportar bug](https://github.com/criveradev/red-social-mern/issues)**
+🐛 **[Reportar bug](https://github.com/criveradev/Devlog/issues)**
 
 <br/>
 
@@ -50,8 +50,8 @@ interactuar con otros y construir su red de seguidores.
 
 ## 🎯 Sobre el proyecto
 
-**RedSocial MERN** es un proyecto full-stack desarrollado como primer proyecto profesional
-para portafolio. El objetivo fue aprender y aplicar las bases del desarrollo web moderno:
+**Devlog** es un proyecto full-stack desarrollado como primer proyecto profesional
+para portafolio. El objetivo fue aplicar las bases del desarrollo web moderno:
 construcción de una API REST segura, modelado de datos con MongoDB, autenticación stateless
 con JWT y una interfaz reactiva con React.
 
@@ -253,7 +253,7 @@ Devlog/
 
 ```bash
 git clone https://github.com/criveradev/Devlog.git
-cd red-social-mern
+cd Devlog
 ```
 
 ### 2. Instalar dependencias
@@ -309,7 +309,7 @@ curl http://localhost:5000/health
 
 ```env
 # Servidor
-PORT=5000
+PORT=5050
 NODE_ENV=development
 
 # Base de datos — MongoDB Atlas → Cluster → Connect → Drivers
@@ -333,7 +333,7 @@ CLIENT_URL=https://red-social-kappa.vercel.app
 
 ```env
 # URL base de la API
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5050/api
 
 # En producción:
 # VITE_API_URL=https://red-social-rbav.onrender.com/api
