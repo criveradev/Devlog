@@ -178,7 +178,7 @@ Petición HTTP
 ## 📁 Estructura del proyecto
 
 ```
-red-social-mern/
+Devlog/
 │
 ├── backend/
 │   ├── src/
@@ -252,7 +252,7 @@ red-social-mern/
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/criveradev/red-social-mern.git
+git clone https://github.com/criveradev/Devlog.git
 cd red-social-mern
 ```
 
