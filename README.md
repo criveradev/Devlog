@@ -500,19 +500,12 @@ git push origin feature/nueva-funcionalidad
 
 ---
 
-## 👨‍💻 Autor
-
-**criveradev**
-
-[![GitHub](https://img.shields.io/badge/GitHub-criveradev-181717?style=flat&logo=github&logoColor=white)](https://github.com/criveradev)
-
----
-
 ## 📄 Licencia
 
 Distribuido bajo la licencia MIT. Ver [`LICENSE`](./LICENSE) para más información.
 
 ---
+## 👨‍💻 Autor
 
 <p align="center">
   <picture>
