@@ -505,6 +505,7 @@ git push origin feature/nueva-funcionalidad
 Distribuido bajo la licencia MIT. Ver [`LICENSE`](./LICENSE) para más información.
 
 ---
+
 ## 👨‍💻 Autor
 
 <p align="center">
