@@ -514,14 +514,18 @@ Distribuido bajo la licencia MIT. Ver [`LICENSE`](./LICENSE) para más informaci
 
 ---
 
-<div align="center">
+<p align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://res.cloudinary.com/djgmiody1/image/upload/v1781912419/logo-dark_bgi8al.svg">
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://res.cloudinary.com/djgmiody1/image/upload/v1781912438/logo-light_rys88h.svg">
+    <img
+      alt="criveradev"
+      src="https://res.cloudinary.com/djgmiody1/image/upload/v1781912438/logo-light_rys88h.svg"
+      width="300">
+  </picture>
+</p>
 
-**¿Te resultó útil este proyecto?**
-
-Dale una ⭐ al repositorio — ayuda a que otros lo encuentren.
-
-<br/>
-
-Hecho con ☕ y muchas ganas de aprender.
-
-</div>
