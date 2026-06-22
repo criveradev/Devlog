@@ -18,8 +18,8 @@ interactuar con otros y construir su red de seguidores.
 
 <br/>
 
-🔗 **[Ver demo en vivo](https://red-social-kappa.vercel.app)** &nbsp;·&nbsp;
-📡 **[API en producción](https://red-social-rbav.onrender.com/health)** &nbsp;·&nbsp;
+🔗 **[Ver demo en vivo](https://devlog.criveradev.com)** &nbsp;·&nbsp;
+📡 **[API en producción](https://api.devlog.criveradev.com/health)** &nbsp;·&nbsp;
 🐛 **[Reportar bug](https://github.com/criveradev/Devlog/issues)**
 
 <br/>
@@ -139,8 +139,8 @@ en la nube con CI/CD automático.
 ┌─────────────────────┐         ┌──────────────────────┐
 │                     │  HTTPS  │                      │
 │  Frontend (React)   │────────▶│   Backend (Express)  │
-│  red-social-kappa   │◀────────│   red-social-rbav    │
-│    .vercel.app      │  JSON   │    .onrender.com     │
+│      devlog.        │◀────────│    api.devlog.       │
+│   criveradev.com    │  JSON   │   criveradev.com     │
 │                     │         │                      │
 └─────────────────────┘         └──────────┬───────────┘
                                            │
@@ -153,6 +153,10 @@ en la nube con CI/CD automático.
                │   (datos)    │  │              │  │ auto-deploy) │
                └──────────────┘  └──────────────┘  └──────────────┘
 ```
+
+> Ambos dominios (`devlog.criveradev.com` y `api.devlog.criveradev.com`) son
+> subdominios propios gestionados en **Cloudflare DNS**, apuntando respectivamente
+> a Vercel y Render mediante registros CNAME.
 
 ### Arquitectura del backend por capas
 
@@ -326,7 +330,7 @@ CLOUDINARY_API_KEY=tu_api_key
 CLOUDINARY_API_SECRET=tu_api_secret
 
 # CORS — URL del frontend en producción (sin barra al final)
-CLIENT_URL=https://red-social-kappa.vercel.app
+CLIENT_URL=https://devlog.criveradev.com
 ```
 
 ### Frontend — `frontend/.env`
@@ -336,7 +340,7 @@ CLIENT_URL=https://red-social-kappa.vercel.app
 VITE_API_URL=http://localhost:5050/api
 
 # En producción:
-# VITE_API_URL=https://red-social-rbav.onrender.com/api
+# VITE_API_URL=https://api.devlog.criveradev.com/api
 ```
 
 > ⚠️ **Nunca subas archivos `.env` a GitHub.** Están incluidos en `.gitignore`.
@@ -345,7 +349,7 @@ VITE_API_URL=http://localhost:5050/api
 
 ## 🔌 Endpoints de la API
 
-URL base en producción: `https://red-social-rbav.onrender.com/api`
+URL base en producción: `https://api.devlog.criveradev.com/api`
 
 ### 🔑 Autenticación
 
@@ -410,8 +414,9 @@ deploy en Render y Vercel simultáneamente sin ningún paso manual.
 
 | Servicio | URL |
 |---------|-----|
-| Frontend (Vercel) | [red-social-kappa.vercel.app](https://red-social-kappa.vercel.app) |
-| Backend (Render) | [red-social-rbav.onrender.com](https://red-social-rbav.onrender.com/health) |
+| Frontend (Vercel) | [devlog.criveradev.com](https://devlog.criveradev.com) |
+| Backend (Render) | [api.devlog.criveradev.com](https://api.devlog.criveradev.com/health) |
+| DNS / Dominio | Cloudflare (registros CNAME hacia Vercel y Render) |
 | Base de datos | MongoDB Atlas M0 |
 | Imágenes | Cloudinary |
 
@@ -433,6 +438,16 @@ deploy en Render y Vercel simultáneamente sin ningún paso manual.
 
 # 4. Actualizar CLIENT_URL en Render con la URL de Vercel
 #    → Render hace redeploy automático
+
+# 5. (Opcional) Dominio propio en Cloudflare
+#    - Vercel → Settings → Domains → agrega tu subdominio (ej: app.tudominio.com)
+#      → si tu zona DNS ya está en Cloudflare, Vercel puede autorizar y crear
+#        el registro CNAME automáticamente
+#    - Render → Settings → Custom Domains → agrega tu subdominio de API
+#      (ej: api.tudominio.com) y copia el CNAME entregado a Cloudflare
+#    - Actualiza CLIENT_URL (Render) y VITE_API_URL (Vercel) con los nuevos
+#      dominios — cuidado con incluir siempre el prefijo https://, un origen
+#      sin protocolo hace que el backend rechace el CORS
 ```
 
 ---
