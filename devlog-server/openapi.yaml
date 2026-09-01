@@ -1,0 +1,518 @@
+openapi: 3.1.0
+info:
+  title: Devlog API
+  version: 1.1.0
+  description: Contrato estable v1 de la API REST de la red social Devlog.
+  x-api-version: v1
+  x-lifecycle-status: current
+servers:
+  - url: http://localhost:5050/api/v1
+    description: Desarrollo local
+  - url: https://api.devlog.criveradev.com/api/v1
+    description: Producción
+tags:
+  - name: Auth
+  - name: Posts
+  - name: Comments
+  - name: Users
+paths:
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [Auth]
+      summary: Registrar usuario e iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+      responses:
+        '201':
+          description: Usuario registrado; establece la cookie de sesión.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [Auth]
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Sesión iniciada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [Auth]
+      summary: Obtener la sesión actual
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: Usuario autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /auth/verify-email/request:
+    post:
+      operationId: requestEmailVerification
+      tags: [Auth]
+      summary: Enviar email de verificación
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '202': { $ref: '#/components/responses/Message' }
+        '503': { description: Resend no configurado. }
+  /auth/verify-email:
+    post:
+      operationId: verifyEmail
+      tags: [Auth]
+      summary: Confirmar email mediante token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenInput' }
+      responses:
+        '200': { $ref: '#/components/responses/Message' }
+        '400': { description: Token inválido o expirado. }
+  /auth/forgot-password:
+    post:
+      operationId: requestPasswordReset
+      tags: [Auth]
+      summary: Solicitar recuperación de contraseña
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '202': { $ref: '#/components/responses/Message' }
+        '503': { description: Resend no configurado. }
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [Auth]
+      summary: Restablecer contraseña mediante token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token: { type: string, pattern: '^[a-fA-F0-9]{64}$' }
+                password: { type: string, minLength: 12, maxLength: 128 }
+      responses:
+        '200': { $ref: '#/components/responses/Message' }
+        '400': { description: Token inválido o expirado. }
+  /auth/change-password:
+    post:
+      operationId: changePassword
+      tags: [Auth]
+      summary: Cambiar la contraseña y revocar las sesiones activas
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string }
+                newPassword: { type: string, minLength: 12, maxLength: 128 }
+      responses:
+        '200': { $ref: '#/components/responses/Message' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /auth/change-email/request:
+    post:
+      operationId: requestEmailChange
+      tags: [Auth]
+      summary: Enviar confirmación al nuevo email
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '202': { $ref: '#/components/responses/Message' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { description: Resend no configurado. }
+  /auth/change-email/confirm:
+    post:
+      operationId: confirmEmailChange
+      tags: [Auth]
+      summary: Confirmar el nuevo email y revocar las sesiones activas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenInput' }
+      responses:
+        '200': { $ref: '#/components/responses/Message' }
+        '400': { description: Token inválido o expirado. }
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      tags: [Auth]
+      summary: Revocar sesiones y eliminar la cookie
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Message' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /posts:
+    get:
+      operationId: listPosts
+      tags: [Posts]
+      summary: Feed paginado por cursor
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 10 } }
+        - { name: page, in: query, deprecated: true, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: Página del feed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CursorPostPage'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      operationId: createPost
+      tags: [Posts]
+      summary: Crear publicación
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, minLength: 1, maxLength: 1000 }
+                image: { type: string, format: binary }
+      responses:
+        '201':
+          description: Publicación creada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Post' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /posts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    get:
+      operationId: getPostById
+      tags: [Posts]
+      summary: Obtener una publicación
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: Publicación.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Post' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      operationId: updatePost
+      tags: [Posts]
+      summary: Editar publicación propia
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, minLength: 1, maxLength: 1000 }
+      responses:
+        '200': { description: Publicación actualizada. }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    delete:
+      operationId: deletePost
+      tags: [Posts]
+      summary: Eliminar publicación propia
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Message' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /posts/{id}/like:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    put:
+      operationId: likePost
+      tags: [Posts]
+      summary: Marcar una publicación con like
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: Estado del like.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  likes: { type: integer }
+                  liked: { type: boolean }
+    delete:
+      operationId: unlikePost
+      tags: [Posts]
+      summary: Quitar el like de una publicación
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '200':
+          description: Estado del like.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  likes: { type: integer }
+                  liked: { type: boolean }
+  /comments/post/{postId}:
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        schema: { type: string, pattern: '^[a-fA-F0-9]{24}$' }
+    get:
+      operationId: listPostComments
+      tags: [Comments]
+      summary: Listar comentarios paginados
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses:
+        '200': { description: Página de comentarios. }
+    post:
+      operationId: createComment
+      tags: [Comments]
+      summary: Crear comentario
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, minLength: 1, maxLength: 500 }
+      responses:
+        '201': { description: Comentario creado. }
+  /comments/{id}:
+    delete:
+      operationId: deleteComment
+      tags: [Comments]
+      summary: Eliminar comentario propio
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200': { $ref: '#/components/responses/Message' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /users/{id}:
+    get:
+      operationId: getUserProfile
+      tags: [Users]
+      summary: Perfil y publicaciones
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 20, default: 10 } }
+      responses:
+        '200': { description: Perfil del usuario. }
+  /users/profile:
+    put:
+      operationId: updateUserProfile
+      tags: [Users]
+      summary: Actualizar perfil propio
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '200': { description: Perfil actualizado. }
+  /users/{id}/follow:
+    parameters:
+      - $ref: '#/components/parameters/ResourceId'
+    put:
+      operationId: followUser
+      tags: [Users]
+      summary: Seguir a un usuario
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '200': { description: Estado del follow. }
+    delete:
+      operationId: unfollowUser
+      tags: [Users]
+      summary: Dejar de seguir a un usuario
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        '200': { description: Estado del follow. }
+  /users/account:
+    delete:
+      operationId: deleteCurrentUserAccount
+      tags: [Users]
+      summary: Eliminar integralmente la cuenta autenticada
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword]
+              properties:
+                currentPassword: { type: string, minLength: 1, maxLength: 128 }
+      responses:
+        '200': { $ref: '#/components/responses/Message' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: devlog_access_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[a-fA-F0-9]{24}$' }
+  schemas:
+    RegisterInput:
+      type: object
+      required: [username, email, password]
+      properties:
+        username: { type: string, minLength: 3, maxLength: 30 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 12, maxLength: 128 }
+    TokenInput:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, pattern: '^[a-fA-F0-9]{64}$' }
+    CurrentUser:
+      type: object
+      required: [_id, username, email]
+      properties:
+        _id: { type: string }
+        username: { type: string }
+        email: { type: string, format: email }
+        avatar: { type: string }
+        bio: { type: string }
+    UserSummary:
+      type: object
+      properties:
+        _id: { type: string }
+        username: { type: string }
+        avatar: { type: string }
+    Post:
+      type: object
+      properties:
+        _id: { type: string }
+        author: { $ref: '#/components/schemas/UserSummary' }
+        content: { type: string }
+        image: { type: string }
+        likesCount: { type: integer }
+        likedByCurrentUser: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    CursorPostPage:
+      type: object
+      required: [posts, hasMore]
+      properties:
+        posts:
+          type: array
+          items: { $ref: '#/components/schemas/Post' }
+        hasMore: { type: boolean }
+        nextCursor: { type: [string, 'null'] }
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+  responses:
+    Message:
+      description: Operación completada.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Sesión ausente, inválida o revocada.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: El usuario no tiene permiso sobre el recurso.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Recurso no encontrado.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: Conflicto con un recurso existente.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ValidationError:
+      description: Datos de entrada inválidos.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    PayloadTooLarge:
+      description: Payload superior al límite.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: Límite de peticiones excedido.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

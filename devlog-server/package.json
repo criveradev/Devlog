@@ -1,0 +1,45 @@
+{
+  "name": "devlog-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "NODE_ENV=test node --test",
+    "test:coverage": "NODE_ENV=test node --test --experimental-test-coverage",
+    "docker:up": "docker compose -f ../docker-compose.yml up --build -d",
+    "docker:logs": "docker compose -f ../docker-compose.yml logs -f backend frontend",
+    "docker:down": "docker compose -f ../docker-compose.yml down --remove-orphans",
+    "docker:test": "sh scripts/docker-test.sh",
+    "docker:e2e": "sh scripts/docker-e2e.sh",
+    "migrate:relations": "node scripts/migrateRelations.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "express-validator": "^7.3.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.2",
+    "multer": "^2.1.1",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.2.0",
+    "nodemon": "^3.1.14"
+  }
+}

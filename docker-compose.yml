@@ -1,0 +1,126 @@
+name: devlog
+
+services:
+  mongo:
+    image: mongo:8.0.29-noble
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    environment:
+      # Workaround for MongoDB SERVER-121912 on Linux kernel 6.19+.
+      GLIBC_TUNABLES: glibc.pthread.rseq=1
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  mongo-init:
+    image: mongo:8.0.29-noble
+    restart: "no"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mongosh --host mongo:27017 --quiet --eval '
+          try {
+            rs.status();
+          } catch (error) {
+            rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "mongo:27017" }] });
+          }
+        '
+
+  backend:
+    build:
+      context: ./devlog-server
+      target: development
+    init: true
+    environment:
+      NODE_ENV: development
+      PORT: 5050
+      MONGO_URI: mongodb://mongo:27017/devlog?replicaSet=rs0
+      JWT_SECRET: docker-development-secret-with-at-least-32-characters
+      JWT_EXPIRES: 7d
+      CLIENT_URL: http://localhost:5173,http://frontend:5173
+      CLOUDINARY_CLOUD_NAME: docker-placeholder
+      CLOUDINARY_API_KEY: docker-placeholder
+      CLOUDINARY_API_SECRET: docker-placeholder
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-Devlog <no-reply@notify.criveradev.com>}
+    ports:
+      - "${BACKEND_PORT:-5050}:5050"
+    volumes:
+      - ./devlog-server/src:/app/src:ro
+      - ./devlog-server/openapi.yaml:/app/openapi.yaml:ro
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:5050/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./devlog-client
+      target: development
+    init: true
+    environment:
+      VITE_API_URL: ""
+      DEV_API_PROXY_TARGET: http://backend:5050
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./devlog-client/src:/app/src:ro
+      - ./devlog-client/public:/app/public:ro
+      - ./devlog-client/index.html:/app/index.html:ro
+      - ./devlog-client/vite.config.js:/app/vite.config.js:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:5173').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  test:
+    profiles: ["test"]
+    build:
+      context: ./devlog-server
+      target: test
+    init: true
+    environment:
+      NODE_ENV: test
+
+  e2e:
+    profiles: ["e2e"]
+    build:
+      context: ./devlog-client
+      target: e2e
+    init: true
+    ipc: host
+    environment:
+      CI: "true"
+      PLAYWRIGHT_BASE_URL: http://frontend:5173
+    volumes:
+      - ./devlog-client/playwright-report:/app/playwright-report
+      - ./devlog-client/test-results:/app/test-results
+
+volumes:
+  mongo_data:
